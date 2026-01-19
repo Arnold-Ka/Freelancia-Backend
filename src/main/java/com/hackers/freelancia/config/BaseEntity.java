@@ -33,9 +33,9 @@ public class BaseEntity {
     @Column(name = "created_by", updatable = false)
     @CreatedBy
     protected String createdBy;
-    @Column(name = "updated_by")
+    @Column(name = "last_modified_by")
     @LastModifiedBy
-    protected String updatedBy;
+    protected String lastModifiedBy;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "statut")
@@ -71,11 +71,11 @@ public class BaseEntity {
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
-    public String getUpdatedBy() {
-        return updatedBy;
+    public String getLastModifiedBy() {
+        return lastModifiedBy;
     }
-    public void setUpdatedBy(String updatedBy) {
-        this.updatedBy = updatedBy;
+    public void setLastModifiedBy(String lastModifiedBy) {
+        this.lastModifiedBy = lastModifiedBy;
     }
     public Statut getStatut() {
         return statut;
