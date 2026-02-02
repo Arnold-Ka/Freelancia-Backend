@@ -61,11 +61,12 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Tuer uniquement les processus Java de l'utilisateur 'hackers'
+            # Tuer uniquement les processus Java de l'utilisateur correct
             pkill -u ${{ secrets.VPS_USER }} -f 'java -jar' || true
-
+                  
             # Lancer l'application en arrière-plan avec nohup
             nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > /home/${{ secrets.VPS_USER }}/app/app.log 2>&1 &
-
+                  
             # Afficher le processus pour vérification
             ps -u ${{ secrets.VPS_USER }} -f
+                  
