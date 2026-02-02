@@ -2,4 +2,4 @@ spring:
   application:
     name: freelancia
 server:
-  port: 33753
+  port: 33726
