@@ -1,3 +1,5 @@
 spring:
-    application:
-        name: freelancia
+  application:
+    name: freelancia
+server:
+  port: 33726
