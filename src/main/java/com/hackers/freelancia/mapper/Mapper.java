@@ -23,6 +23,14 @@ import com.hackers.freelancia.entity.Skills;
 import com.hackers.freelancia.entity.Subscription;
 import com.hackers.freelancia.entity.User;
 
+/**
+ * Mapper générale de l'application.
+ *
+ * @author : <A HREF="mailto:karambiriarnold@gmail.com">Karambiri Lawatan Arnold Bily</A>
+ * @version : 1.0
+ * Copyright (c) 2021 All rights reserved.
+ * @since : 14/05/2021 à 13:51
+ */
 @org.mapstruct.Mapper(
     componentModel = "spring",
     unmappedTargetPolicy = ReportingPolicy.IGNORE
