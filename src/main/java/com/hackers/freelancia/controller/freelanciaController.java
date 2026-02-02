@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequiredArgsConstructor
 public class freelanciaController {
-    public static FreelanciaService service;
+    private final FreelanciaService service;
 
     /**
      * Récuperations des skills.
