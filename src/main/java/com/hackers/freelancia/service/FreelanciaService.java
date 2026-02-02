@@ -63,7 +63,7 @@ public class FreelanciaService {
 
     /**
      * Enregistrement d'un skills dans la DB
-     * @param skillsDto les informations sur le skills
+     * @param skillsDto les nouvelles informations sur le skills
      */
     public void postSkill(final SkillsDto skillsDto){
         if (skillsDto.getName() == null || skillsDto.getName() == "") {
