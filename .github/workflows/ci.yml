@@ -2,7 +2,7 @@ name: Java CI/CD with Maven (VPS)
 
 on:
   push:
-    branches: [ "dev" ]   
+    branches: [ "dev" ]  
   pull_request:
     branches: [ "**" ]
 
@@ -11,55 +11,61 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Build with Maven
-      run: mvn -B clean package -DskipTests
+      - name: Build with Maven
+        run: mvn -B clean package -DskipTests
 
-    - name: Verify JAR
-      run: ls -l target
+      - name: Verify JAR
+        run: ls -l target
 
-    - name: Upload JAR artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-jar
-        path: target/*.jar
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download JAR artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: app-jar
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
 
-    - name: List downloaded files
-      run: ls -l
+      - name: List downloaded files
+        run: ls -l
 
-    - name: Copy JAR to VPS
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        source: "*.jar"
-        target: "/home/${{ secrets.VPS_USER }}/app"
+      - name: Copy JAR to VPS
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "*.jar"
+          target: "/home/${{ secrets.VPS_USER }}/app"
 
-    - name: Restart application on VPS
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        script: |
-          pkill -f 'java -jar' || true
-          nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > app.log 2>&1 &
+      - name: Restart application on VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Tuer uniquement les processus Java de l'utilisateur 'hackers'
+            pkill -u ${{ secrets.VPS_USER }} -f 'java -jar' || true
+
+            # Lancer l'application en arrière-plan avec nohup
+            nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > /home/${{ secrets.VPS_USER }}/app/app.log 2>&1 &
+
+            # Afficher le processus pour vérification
+            ps -u ${{ secrets.VPS_USER }} -f
