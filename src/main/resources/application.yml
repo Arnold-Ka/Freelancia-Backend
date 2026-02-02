@@ -1,5 +1,21 @@
 spring:
   application:
     name: freelancia
+  datasource:
+    url: jdbc:postgresql://localhost:5432/freelancia
+    username: freelancia
+    password: freelancia123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 server:
   port: 33726
+
