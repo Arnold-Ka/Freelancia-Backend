@@ -2,7 +2,7 @@ name: Java CI/CD with Maven (VPS)
 
 on:
   push:
-    branches: [ "dev" ]  
+    branches: [ "dev" ]
   pull_request:
     branches: [ "**" ]
 
@@ -42,9 +42,6 @@ jobs:
         with:
           name: app-jar
 
-      - name: List downloaded files
-        run: ls -l
-
       - name: Copy JAR to VPS
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -52,23 +49,16 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "*.jar"
-          target: "/home/${{ secrets.VPS_USER }}/app"
+          target: "/home/${{ secrets.VPS_USER }}/app/freelancia.jar"
 
-      - name: Restart application on VPS
+      - name: Restart Freelancia service on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Tuer les anciens processus Java de l'utilisateur
-            pkill -u ${{ secrets.VPS_USER }} -f 'java -jar' || true
-
-            # Créer le dossier app s'il n'existe pas
-            mkdir -p /home/${{ secrets.VPS_USER }}/app
-
-            # Lancer l'application en arrière-plan et détacher du shell
-            nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > /home/${{ secrets.VPS_USER }}/app/app.log 2>&1 & disown
-
-            # Afficher les processus Java de l'utilisateur pour vérification
-            ps -u ${{ secrets.VPS_USER }} -f
+            set +e
+            sudo systemctl daemon-reload
+            sudo systemctl restart freelancia.service
+            sudo systemctl status freelancia.service
