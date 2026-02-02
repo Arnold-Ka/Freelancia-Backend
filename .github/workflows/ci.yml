@@ -61,12 +61,14 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Tuer uniquement les processus Java de l'utilisateur correct
+            # Tuer les anciens processus Java de l'utilisateur
             pkill -u ${{ secrets.VPS_USER }} -f 'java -jar' || true
-                  
-            # Lancer l'application en arrière-plan avec nohup
-            nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > /home/${{ secrets.VPS_USER }}/app/app.log 2>&1 &
-                  
-            # Afficher le processus pour vérification
+
+            # Créer le dossier app s'il n'existe pas
+            mkdir -p /home/${{ secrets.VPS_USER }}/app
+
+            # Lancer l'application en arrière-plan et détacher du shell
+            nohup java -jar /home/${{ secrets.VPS_USER }}/app/*.jar > /home/${{ secrets.VPS_USER }}/app/app.log 2>&1 & disown
+
+            # Afficher les processus Java de l'utilisateur pour vérification
             ps -u ${{ secrets.VPS_USER }} -f
-                  
