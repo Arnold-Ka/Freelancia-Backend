@@ -9,7 +9,9 @@ import com.hackers.freelancia.dto.FreelanceProfileDto;
 import com.hackers.freelancia.dto.FreelanceSkillsDto;
 import com.hackers.freelancia.dto.MissionDto;
 import com.hackers.freelancia.dto.PaymentDto;
+import com.hackers.freelancia.dto.PermissionDto;
 import com.hackers.freelancia.dto.ReviewDto;
+import com.hackers.freelancia.dto.RoleDto;
 import com.hackers.freelancia.dto.SkillsDto;
 import com.hackers.freelancia.dto.SubscriptionDto;
 import com.hackers.freelancia.dto.UserDto;
@@ -18,7 +20,9 @@ import com.hackers.freelancia.entity.FreelanceProfile;
 import com.hackers.freelancia.entity.FreelanceSkills;
 import com.hackers.freelancia.entity.Mission;
 import com.hackers.freelancia.entity.Payment;
+import com.hackers.freelancia.entity.Permission;
 import com.hackers.freelancia.entity.Review;
+import com.hackers.freelancia.entity.Role;
 import com.hackers.freelancia.entity.Skills;
 import com.hackers.freelancia.entity.Subscription;
 import com.hackers.freelancia.entity.User;
@@ -166,4 +170,33 @@ public interface Mapper {
      */
     @InheritInverseConfiguration
     User maps(UserDto userDto);
+
+    /**
+     * Mapper de Role vers dto
+     * @param role
+     * @return
+     */
+    RoleDto maps(Role role);
+    /**
+     * Mapper de dto vers role
+     * @param roleDto le dto
+     * @return le role
+     */
+    @InheritInverseConfiguration
+    Role maps(RoleDto roleDto);
+
+    /**
+     * Mapper Permission vers dto
+     * @param permission la permission
+     * @return le dto
+     */
+    PermissionDto maps(Permission permission);
+
+    /**
+     * Dto vers Permission
+     * @param permissionDto le dto
+     * @return la permission
+     */
+    @InheritInverseConfiguration
+    Permission maps(PermissionDto permissionDto);
 }
