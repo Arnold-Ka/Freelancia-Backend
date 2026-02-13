@@ -8,6 +8,7 @@ import com.hackers.freelancia.service.FreelanciaService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,8 +36,8 @@ public class freelanciaController {
      * @return la liste de skills
      */
     @GetMapping("/skills")
-    public List<SkillsDto> getAllSkills(){
-        return service.getSkills();
+    public ResponseEntity<List<SkillsDto>> getAllSkills(){
+        return ResponseEntity.ok(service.getSkills());
     }
     /**
      * Recupéré un seul skills grace a son identifiant.
@@ -44,8 +45,8 @@ public class freelanciaController {
      * @return le skills
      */
     @GetMapping("/skills/{id}")
-    public SkillsDto getSkillById(@PathVariable final String id){
-        return service.getSkill(id);
+    public ResponseEntity<SkillsDto> getSkillById(@PathVariable final String id){
+        return ResponseEntity.ok(service.getSkill(id));
     }
 
     /**
@@ -53,8 +54,9 @@ public class freelanciaController {
      * @param skillsDto les données sur le skill
      */
     @PostMapping("/skills")
-    public void createSkill(@RequestBody final SkillsDto skillsDto){
+    public ResponseEntity<String> createSkill(@RequestBody final SkillsDto skillsDto){
         service.postSkill(skillsDto);
+        return ResponseEntity.ok("Skill created successfully");
     }
 
     /**
@@ -63,8 +65,9 @@ public class freelanciaController {
      * @param skillsDto les nouvelles données sur le skills
      */ 
     @PutMapping("/skills/{id}")
-    public void updateSkills(@PathVariable final String id, @RequestBody final SkillsDto skillsDto) {
+    public ResponseEntity<String> updateSkills(@PathVariable final String id, @RequestBody final SkillsDto skillsDto) {
         service.putSkill(id, skillsDto);
+        return ResponseEntity.ok("Skill updated successfully");
     }
 
     /**
@@ -72,7 +75,8 @@ public class freelanciaController {
      * @param id l'identifiant
      */
     @DeleteMapping("/skills/{id}")
-    public void deleteSkill(@PathVariable final String id){
+    public ResponseEntity<String> deleteSkill(@PathVariable final String id){
         service.deleteSkill(id);
+        return ResponseEntity.ok("Skill deleted successfully");
     }
 }

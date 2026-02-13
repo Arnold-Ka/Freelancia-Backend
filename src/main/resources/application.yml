@@ -1,6 +1,8 @@
 spring:
+  main:
+    banner-mode: console
   application:
-    name: freelancia
+    name: Freelancia
 
   datasource:
     url: ${DB_URL}
@@ -17,4 +19,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
-  port: ${SERVER_PORT:33726}
+  port: ${SERVER_PORT:8082}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
