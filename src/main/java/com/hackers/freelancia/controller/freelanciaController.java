@@ -70,6 +70,7 @@ public class freelanciaController {
         return ResponseEntity.status(HttpStatus.OK).body("Categorie mis a jour avec succès");
     }
 
+    @DeleteMapping("/categories/{id}")
     public ResponseEntity<String> dropCategory(@PathVariable final String id){
         service.deleteCategory(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Category Sypprimer avec Succès");
