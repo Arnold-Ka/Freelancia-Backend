@@ -17,6 +17,7 @@ public class Message  extends BaseEntity{
 
     @ManyToOne
     private User sender;
+    
 
     @ManyToOne
     private Conversation conversation;

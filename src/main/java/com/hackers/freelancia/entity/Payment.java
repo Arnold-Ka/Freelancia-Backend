@@ -1,8 +1,11 @@
 package com.hackers.freelancia.entity;
 
 import com.hackers.freelancia.config.BaseEntity;
+import com.hackers.freelancia.entity.enumeration.PaymentStatus;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -17,7 +20,8 @@ public class Payment extends BaseEntity{
     private Long amount;
     private Long commission;
     private String payementMethode;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
 
     @ManyToOne
     private Mission mission;

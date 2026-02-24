@@ -2,6 +2,8 @@ package com.hackers.freelancia.dto;
 
 import java.util.Set;
 
+import com.hackers.freelancia.entity.enumeration.StatutMission;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,7 @@ public class MissionDto {
     private String id;
     private String title;
     private String description;
-    private String statuMission;
+    private StatutMission statuMission;
     private String clientId;
     private Double price;
     private String freelanceProfileId;

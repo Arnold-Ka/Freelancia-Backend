@@ -4,6 +4,8 @@ package com.hackers.freelancia.security;
 public class AuthResponse {
     private String token;         
     private String refreshToken;  
+
+    // Constructeur
     public AuthResponse(String token, String refreshToken) {
         this.token = token;
         this.refreshToken = refreshToken;

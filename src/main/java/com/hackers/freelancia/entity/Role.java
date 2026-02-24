@@ -5,7 +5,7 @@ import java.util.Set;
 import com.hackers.freelancia.config.BaseEntity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +18,7 @@ import lombok.Setter;
 public class Role extends BaseEntity {
     private String name;
 
-    @OneToMany
+    @ManyToMany
     private Set<Permission> permissions;
     
 

@@ -1,7 +1,5 @@
 package com.hackers.freelancia.dto;
 
-import com.hackers.freelancia.entity.enumeration.PaymentStatus;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentDto {
-
+public class CategoryDto {
     private String id;
-    private String missionId;
-    private double amount;
-    private Double commission;
-    private PaymentStatus status;
+    private String name;
+    private String description;
+
 }

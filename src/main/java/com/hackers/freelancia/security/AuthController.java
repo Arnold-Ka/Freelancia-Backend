@@ -1,159 +1,251 @@
 package com.hackers.freelancia.security;
 
-import java.util.Set;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hackers.freelancia.dto.PermissionDto;
 import com.hackers.freelancia.dto.RoleDto;
-import com.hackers.freelancia.entity.Role;
-import com.hackers.freelancia.entity.User;
-import com.hackers.freelancia.mapper.Mapper;
 import com.hackers.freelancia.service.UserService;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
 public class AuthController {
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
-    private final RefreshTokenService refreshTokenService;
+
+    private final AuthService authService;
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
-    private final Mapper mapper;
 
-    @PostMapping("/register")
-    public void register(@RequestBody RegisterRequest request) {
+    /*
+     * ==========================
+     * AUTHENTIFICATION
+     * ==========================
+     */
 
-        if (userService.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
-        }
-
-        if (userService.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already used");
-        }
-
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPhoneNumber(request.getPhoneNumber());
-
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        Role userRole = userService.getByName("USER");
-
-        user.setRoles(Set.of(userRole));
-
-        userService.postUser(mapper.maps(user));
+    /**
+     * Enregistre un nouvel utilisateur et envoie un email d'activation.
+     *
+     * @param request les informations d'enregistrement de l'utilisateur
+     * @return une réponse contenant le token JWT et le token de rafraîchissement
+     */
+    @PostMapping("/auth/register")
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(authService.register(request));
     }
 
-    @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest authRequest) {
-
-        User user = (User) authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getUsername(),
-                        authRequest.getPassword()))
-                .getPrincipal();
-
-        String accessToken = jwtService.generateToken(user);
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
-
-        return new AuthResponse(accessToken, refreshToken.getToken());
+    /**
+     * Active le compte d'un utilisateur à l'aide d'un token d'activation.
+     *
+     * @param token le token d'activation envoyé par email
+     * @return une réponse indiquant que le compte a été activé avec succès
+     */
+    @GetMapping("/auth/activate")
+    public ResponseEntity<String> activateAccount(@RequestParam String token) {
+        authService.activateAccount(token);
+        return ResponseEntity.ok("Compte activé avec succès !");
     }
 
-    @PostMapping("/refresh")
-    public AuthResponse refreshToken(@RequestBody RefreshRequest request) {
-
-        RefreshToken refreshToken = refreshTokenService.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
-
-        refreshTokenService.verifyExpiration(refreshToken);
-
-        UserDetails userDetails = userService.loadUserByUsername(refreshToken.getUser().getUsername());
-
-        String newAccessToken = jwtService.generateToken(userDetails);
-
-        return new AuthResponse(newAccessToken, refreshToken.getToken());
+    /**
+     * Authentifie un utilisateur et génère un token JWT et un token de
+     * rafraîchissement.
+     *
+     * @param request les informations d'authentification de l'utilisateur
+     * @return une réponse contenant le token JWT et le token de rafraîchissement
+     */
+    @PostMapping("/auth/login")
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody AuthRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody RefreshRequest request) {
+    /**
+     * Rafraîchit un token JWT à l'aide d'un token de rafraîchissement valide.
+     *
+     * @param request les informations de rafraîchissement du token
+     * @return une réponse contenant le nouveau token JWT et le nouveau token de
+     *         rafraîchissement
+     */
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<AuthResponse> refresh(
+            @Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request));
+    }
 
-        refreshTokenService.deleteByToken(request.getRefreshToken());
+    /**
+     * Envoie un email de réinitialisation de mot de passe à l'utilisateur.
+     *
+     * @param email l'adresse email de l'utilisateur qui a oublié son mot de
+     *              passe
+     * @return une réponse indiquant que l'email de réinitialisation a été envoyé
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
 
+        authService.forgotPassword(email);
+
+        return ResponseEntity.ok("Email de réinitialisation envoyé");
+    }
+
+    /**
+     * Réinitialise le mot de passe d'un utilisateur à l'aide d'un token de
+     * réinitialisation valide.
+     *
+     * @param token       le token de réinitialisation envoyé par email
+     * @param newPassword le nouveau mot de passe à définir
+     * @return une réponse indiquant que le mot de passe a été réinitialisé avec
+     *         succès
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword) {
+
+        authService.resetPassword(token, newPassword);
+
+        return ResponseEntity.ok("Mot de passe réinitialisé avec succès");
+    }
+
+    /**
+     * Déconnecte un utilisateur en invalidant son token de rafraîchissement.
+     *
+     * @param request les informations de déconnexion contenant le token de
+     *                rafraîchissement à invalider
+     * @return une réponse indiquant que l'utilisateur a été déconnecté avec succès
+     */
+    @PostMapping("/auth/logout")
+    public ResponseEntity<String> logout(
+            @Valid @RequestBody RefreshRequest request) {
+        authService.logout(request);
         return ResponseEntity.ok("Logged out successfully");
     }
 
+    /*
+     * ==========================
+     * ROLES
+     * ==========================
+     */
+
+    /**
+     * Crée un nouveau rôle.
+     *
+     * @param roleDto les informations du rôle à créer
+     * @return une réponse indiquant que le rôle a été créé avec succès
+     */
     @PostMapping("/roles")
-    public ResponseEntity<String> postRole(@RequestBody RoleDto roleDto) {
+    public ResponseEntity<String> createRole(
+            @Valid @RequestBody RoleDto roleDto) {
         userService.postRole(roleDto);
-        return ResponseEntity.ok("Role created successfully");
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Role created successfully");
     }
 
-    @PutMapping("/permissions/{id}")
-    public ResponseEntity<String> postPermission(@PathVariable String id, @RequestBody PermissionDto permissionDto) {
-        userService.putPermission(id, permissionDto);
-        return ResponseEntity.ok("Permission updated successfully");
-    }
-
-    @PutMapping("/roles/{id}")
-    public ResponseEntity<String> putRole(@PathVariable String id, @RequestBody RoleDto roleDto) {
-        userService.putRole(id, roleDto);
-        return ResponseEntity.ok("Role updated successfully");
-    }
-
-    @PostMapping("/permissions")
-    public ResponseEntity<String> postPermission(@RequestBody PermissionDto permissionDto) {
-        userService.postPermission(permissionDto);
-        return ResponseEntity.ok("Permission created successfully");
-    }
-
+    /**
+     * Récupère tous les rôles.
+     *
+     * @return une réponse contenant la liste des rôles
+     */
     @GetMapping("/roles")
     public ResponseEntity<Set<RoleDto>> getRoles() {
         return ResponseEntity.ok(userService.getAllRoles());
     }
 
-    @GetMapping("/roles/{id}")
-    public ResponseEntity<RoleDto> getRole(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getRoleById(id));
+    /**
+     * Met à jour un rôle existant.
+     *
+     * @param id      l'ID du rôle à mettre à jour
+     * @param roleDto les nouvelles informations du rôle
+     * @return une réponse indiquant que le rôle a été mis à jour avec succès
+     */
+    @PutMapping("/roles/{id}")
+    public ResponseEntity<String> updateRole(
+            @PathVariable String id,
+            @Valid @RequestBody RoleDto roleDto) {
+        userService.putRole(id, roleDto);
+        return ResponseEntity.ok("Role updated successfully");
     }
 
-    @GetMapping("/permissions")
-    public ResponseEntity<Set<PermissionDto>> getPermissions() {
-        return ResponseEntity.ok(userService.getAllPermissions());
-    }
-
-    @GetMapping("/permissions/{id}")
-    public ResponseEntity<PermissionDto> getPermission(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getPermission(id));
-    }
-
+    /**
+     * Supprime un rôle par son ID.
+     *
+     * @param id l'ID du rôle à supprimer
+     * @return une réponse indiquant que le rôle a été supprimé avec succès
+     */
     @DeleteMapping("/roles/{id}")
     public ResponseEntity<String> deleteRole(@PathVariable String id) {
         userService.deleteRoleById(id);
         return ResponseEntity.ok("Role deleted successfully");
     }
 
+    /*
+     * ==========================
+     * PERMISSIONS
+     * ==========================
+     */
+
+    /**
+     * Crée une nouvelle permission.
+     *
+     * @param permissionDto les informations de la permission à créer
+     * @return une réponse indiquant que la permission a été créée avec succès
+     */
+    @PostMapping("/permissions")
+    public ResponseEntity<String> createPermission(
+            @Valid @RequestBody PermissionDto permissionDto) {
+        userService.postPermission(permissionDto);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Permission created successfully");
+    }
+
+    /**
+     * Récupère toutes les permissions.
+     *
+     * @return une réponse contenant la liste des permissions
+     */
+    @GetMapping("/permissions")
+    public ResponseEntity<Set<PermissionDto>> getPermissions() {
+        return ResponseEntity.ok(userService.getAllPermissions());
+    }
+
+    /**
+     * Met à jour une permission existante.
+     *
+     * @param id            l'ID de la permission à mettre à jour
+     * @param permissionDto les nouvelles informations de la permission
+     * @return une réponse indiquant que la permission a été mise à jour avec succès
+     */
+    @PutMapping("/permissions/{id}")
+    public ResponseEntity<String> updatePermission(
+            @PathVariable String id,
+            @Valid @RequestBody PermissionDto permissionDto) {
+        userService.putPermission(id, permissionDto);
+        return ResponseEntity.ok("Permission updated successfully");
+    }
+
+    /**
+     * Supprime une permission par son ID.
+     *
+     * @param id l'ID de la permission à supprimer
+     * @return une réponse indiquant que la permission a été supprimée avec succès
+     */
     @DeleteMapping("/permissions/{id}")
     public ResponseEntity<String> deletePermission(@PathVariable String id) {
         userService.deletePermissionById(id);
         return ResponseEntity.ok("Permission deleted successfully");
     }
-
 }

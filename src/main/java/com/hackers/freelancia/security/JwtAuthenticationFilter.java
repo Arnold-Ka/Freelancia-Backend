@@ -24,11 +24,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public final String TOKEN_PREFIX = "Bearer ";
     public final String HEADER_STRING = "Authorization";
 
+    // Constructeur pour l'injection des dépendances
     public JwtAuthenticationFilter(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
     }
 
+    /**
+     * Filtre les requêtes entrantes pour extraire et valider le token JWT.
+     *
+     * @param request     la requête HTTP entrante
+     * @param response    la réponse HTTP sortante
+     * @param filterChain la chaîne de filtres à exécuter après ce filtre
+     * @throws ServletException en cas d'erreur de servlet
+     * @throws IOException      en cas d'erreur d'entrée/sortie
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

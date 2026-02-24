@@ -16,10 +16,16 @@ public class JwtService {
     @Value("${jwt.secret}")
     public  String SECRET_KEY ;
     @Value("${jwt.expiration}")
-    public  long EXPIRATION_TIME = 1000 * 60 * 60 * 10; 
+    public  long EXPIRATION_TIME; 
 
     
 
+    /**
+     * Génère un token JWT pour l'utilisateur donné.
+     *
+     * @param userDetails les détails de l'utilisateur pour lequel générer le token
+     * @return le token JWT généré
+     */
     public  String generateToken(UserDetails userDetails){
 
         Map<String, Object> claims = new HashMap<>();
@@ -38,6 +44,12 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Extrait le nom d'utilisateur du token JWT.
+     *
+     * @param token le token JWT à partir duquel extraire le nom d'utilisateur
+     * @return le nom d'utilisateur extrait du token
+     */
     public String extractUsername(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY.getBytes())
@@ -45,6 +57,10 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String getSecret() {
+        return SECRET_KEY;
     }
 
 }
