@@ -2,6 +2,7 @@ package com.hackers.freelancia;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * class général.
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Copyright (c) 2021 All rights reserved.
  * @since : 19/01/2026 à 13:51
  */
+@EnableJpaAuditing
 @SpringBootApplication
 public class FreelanciaApplication {
 
