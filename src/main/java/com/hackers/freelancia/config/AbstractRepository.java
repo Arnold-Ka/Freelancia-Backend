@@ -7,9 +7,11 @@ import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import com.hackers.freelancia.entity.User;
 
+@NoRepositoryBean
 public interface AbstractRepository<T extends BaseEntity, ID> extends JpaRepository<T, ID>{
     List<T> findByStatut(Statut statut);
     List<T> findByStatutOrderByCreatedAtDesc(Statut statut);

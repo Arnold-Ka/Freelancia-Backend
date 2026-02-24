@@ -1,7 +1,5 @@
 package com.hackers.freelancia.dto;
 
-import com.hackers.freelancia.entity.enumeration.TypeSubscription;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,14 +7,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class SubscriptionDto {
+@AllArgsConstructor
+public class RatingDto {
 
     private String id;
+    private int ratingValue;
+    private String comment;
     private String freelanceProfileId;
-    private TypeSubscription type;
-    private String startDate;
-    private String endDate;
-    private String status;
 }

@@ -13,7 +13,7 @@ public class SkillsDto {
 
     private String id;
     private String name;
-    private String category;
+    private String categoryId;
     private String description;
     private String icon;
 }

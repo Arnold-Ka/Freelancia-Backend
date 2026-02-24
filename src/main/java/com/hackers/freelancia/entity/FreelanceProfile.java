@@ -32,8 +32,6 @@ public class FreelanceProfile extends BaseEntity {
     private String portfolioUrl;
     @Column(name = "links", nullable = true)
     private Set<String> links = new HashSet<>();
-    @Column(name = "rating", nullable = true)
-    private Long rating;
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
     @Column(name = "is_premium", nullable = false)
@@ -41,4 +39,5 @@ public class FreelanceProfile extends BaseEntity {
     
     @OneToOne
     private User user;
+
 }

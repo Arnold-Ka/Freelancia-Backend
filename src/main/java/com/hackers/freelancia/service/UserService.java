@@ -3,10 +3,12 @@ package com.hackers.freelancia.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.hackers.freelancia.entity.Permission;
 import com.hackers.freelancia.entity.Role;
@@ -21,6 +23,7 @@ import com.hackers.freelancia.dto.PermissionDto;
 import com.hackers.freelancia.dto.RoleDto;
 import com.hackers.freelancia.dto.UserDto;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -41,7 +44,8 @@ public class UserService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
+                () -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     /**
@@ -52,7 +56,8 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
     public Role getByName(final String name) {
-        return roleRepository.findByName(name).orElseThrow(() -> new RuntimeException("Role not found"));
+        return roleRepository.findByNameAndStatut(name, Statut.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
     }
 
     /**
@@ -74,7 +79,7 @@ public class UserService implements UserDetailsService {
      * @return Set<UserDto> l'ensemble des utilisateurs sous forme de DTOs
      */
     public Set<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(mapper::maps).collect(Collectors.toSet());
+        return userRepository.findAllActive().stream().map(mapper::maps).collect(Collectors.toSet());
     }
 
     /**
@@ -84,8 +89,8 @@ public class UserService implements UserDetailsService {
      * @return UserDto le DTO de l'utilisateur trouvé
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
-    public UserDto getUser(final String id) {
-        return mapper.maps(userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
+    public UserDto getUser(@NonNull final String id) {
+        return mapper.maps(userRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(() -> new RuntimeException("User not found")));
     }
 
     /**
@@ -94,15 +99,25 @@ public class UserService implements UserDetailsService {
      * @param user le DTO de l'utilisateur à créer
      * @throws RuntimeException si le nom d'utilisateur ou l'email est déjà utilisé
      */
-    public void postUser(final UserDto user) {
-        if (existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already taken");
+    public void postUser(final UserDto userDto) {
+
+        if (userRepository.existsByUsername(userDto.getUsername())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Username already taken");
         }
-        if (existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already used");
+
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Email already used");
         }
+
+        User user = mapper.maps(userDto);
         user.setId(Utils.generateId());
-        userRepository.save(mapper.maps(user));
+        user.setStatut(Statut.INACTIVE);
+
+        userRepository.save(user);
     }
 
     /**
@@ -113,7 +128,9 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
     public User getByUsername(final String username) {
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée")
+        );
     }
 
     /**
@@ -123,9 +140,10 @@ public class UserService implements UserDetailsService {
      * @return User l'utilisateur trouvé
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
-    public User getById(final String id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+      public User getByEmail(final String email) {
+        return userRepository.findByEmail(email);
     }
+
 
     /**
      * Supprime un utilisateur par son ID (soft delete).
@@ -133,8 +151,10 @@ public class UserService implements UserDetailsService {
      * @param id l'ID de l'utilisateur à supprimer
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
-    public void deleteById(final String id) {
-        User user = getById(id);
+    public void deleteUser(final String id) {
+        User user = userRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée")
+        );
         user.setStatut(Statut.DELETED);
         userRepository.save(user);
     }
@@ -146,7 +166,9 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
     public void deleteByUsername(final String username) {
-        userRepository.deleteById(getByUsername(username).getId());
+        User user = getByUsername(username);
+        user.setStatut(Statut.DELETED);
+        userRepository.save(user);
     }
 
     /**
@@ -156,8 +178,8 @@ public class UserService implements UserDetailsService {
      * @return RoleDto le DTO du rôle trouvé
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
-    public RoleDto getRoleById(final String id) {
-        return mapper.maps(roleRepository.findById(id).orElseThrow(() -> new RuntimeException("Role not found")));
+    public RoleDto getRoleById(@NonNull final String id) {
+        return mapper.maps(roleRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(() -> new RuntimeException("Role not found")));
     }
 
     /**
@@ -166,7 +188,7 @@ public class UserService implements UserDetailsService {
      * @return Set<RoleDto> l'ensemble des rôles sous forme de DTOs
      */
     public Set<RoleDto> getAllRoles() {
-        return roleRepository.findAll().stream().map(mapper::maps).collect(Collectors.toSet());
+        return roleRepository.findAllActive().stream().map(mapper::maps).collect(Collectors.toSet());
     }
 
     /**
@@ -177,10 +199,14 @@ public class UserService implements UserDetailsService {
      */
     public void putUser(final String id, final UserDto user) {
         user.setId(id);
-        if (existsByUsername(user.getUsername()) && !getById(id).getUsername().equals(user.getUsername())) {
+        if (existsByUsername(user.getUsername()) && !userRepository.findByIdAndStatut(id, Statut.ACTIVE)
+            .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvé"))
+        .getUsername().equals(user.getUsername())) {
             throw new RuntimeException("Username already taken");
         }
-        if (existsByEmail(user.getEmail()) && !getById(id).getEmail().equals(user.getEmail())) {
+        if (existsByEmail(user.getEmail()) && !userRepository.findByIdAndStatut(id, Statut.ACTIVE)
+            .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvé"))
+            .getEmail().equals(user.getEmail())) {
             throw new RuntimeException("Email already used");
         }
         userRepository.save(mapper.maps(user));
@@ -239,55 +265,62 @@ public class UserService implements UserDetailsService {
      * @param name le nom du rôle à vérifier
      * @return boolean true si le rôle existe, false sinon
      */
-    public PermissionDto getPermission(final String id){
-        return mapper.maps(permissionRepository.findById(id).orElseThrow(() -> new RuntimeException("Permission not found")));
+    public PermissionDto getPermission(final String id) {
+        return mapper.maps(
+                permissionRepository.findByIdAndStatut(id, Statut.ACTIVE)
+                        .orElseThrow(() -> new RuntimeException("Permission not found")));
     }
+
     /**
      * Récupère tous les rôles.
      * 
      * @return Set<RoleDto> l'ensemble des rôles sous forme de DTOs
      */
-    public Set<PermissionDto> getAllPermissions(){
-        return permissionRepository.findAll().stream().map(mapper::maps).collect(Collectors.toSet());
+    public Set<PermissionDto> getAllPermissions() {
+        return permissionRepository.findAllActive().stream().map(mapper::maps).collect(Collectors.toSet());
     }
+
     /**
      * Crée une nouvelle permission.
      * 
      * @param permission le DTO de la permission à créer
      * @throws RuntimeException si la permission existe déjà
      */
-    public void postPermission(final PermissionDto permission){
-        if(permissionRepository.existsByName(permission.getName())){
+    public void postPermission(final PermissionDto permission) {
+        if (permissionRepository.existsByName(permission.getName())) {
             throw new RuntimeException("Permission already exists");
         }
         permission.setId(Utils.generateId());
         permissionRepository.save(mapper.maps(permission));
     }
+
     /**
      * Modifie une permission existante.
      * 
-     * @param id   l'ID de la permission à modifier
+     * @param id         l'ID de la permission à modifier
      * @param permission le DTO de la permission avec les nouvelles données
      * @throws RuntimeException si la permission n'est pas trouvée
      */
-    public void putPermission(final String id, final PermissionDto permission){
+    public void putPermission(final String id, final PermissionDto permission) {
         permission.setId(id);
-        if(permissionRepository.existsByName(permission.getName()) && !getPermission(id).getName().equals(permission.getName())){
+        if (permissionRepository.existsByName(permission.getName())
+                && !getPermission(id).getName().equals(permission.getName())) {
             throw new RuntimeException("Permission name already exists");
         }
         permissionRepository.save(mapper.maps(permission));
     }
+
     /**
      * Supprime une permission par son ID (soft delete).
      * 
      * @param id l'ID de la permission à supprimer
      * @throws RuntimeException si la permission n'est pas trouvée
      */
-    public void deletePermissionById(final String id){
-        Permission permission = permissionRepository.findById(id).orElseThrow(() -> new RuntimeException("Permission not found"));
+    public void deletePermissionById(final String id) {
+        Permission permission = permissionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Permission not found"));
         permission.setStatut(Statut.DELETED);
         permissionRepository.save(permission);
     }
-        
 
 }
