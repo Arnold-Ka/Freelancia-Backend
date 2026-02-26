@@ -1,5 +1,7 @@
 package com.hackers.freelancia.entity;
 
+import java.util.Objects;
+
 import com.hackers.freelancia.config.BaseEntity;
 
 import jakarta.persistence.Entity;
@@ -23,6 +25,23 @@ public class Category extends BaseEntity {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Category other = (Category) obj;
+        return Objects.equals(getId(), other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
     }
 
 }

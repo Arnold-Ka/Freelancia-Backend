@@ -155,12 +155,16 @@ public class FreelanciaService {
      * @param skillsDto les nouvelles informations sur le skills
      */
     public void postSkill(final SkillsDto skillsDto) {
+        System.out.println(skillsDto.getCategoryId());
         if (skillsDto.getName() == null || skillsDto.getName() == "") {
             new IllegalArgumentException("Le nom est vide");
         }
         Skills skills = mapper.maps(skillsDto);
+
+        skills.setCategory(categoryRepository.findByIdAndStatut(skillsDto.getCategoryId(), Statut.ACTIVE)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category non Trouvée")));
         skills.setId(Utils.generateId());
-        skillsRepository.save(skills);
+        skills = skillsRepository.save(skills);
     }
 
     /**
