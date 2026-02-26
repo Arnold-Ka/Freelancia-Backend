@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -43,8 +42,8 @@ public class UserService implements UserDetailsService {
      * @throws UsernameNotFoundException si l'utilisateur n'est pas trouvé
      */
     @Override
-    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-        return userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
+    public User loadUserByUsername(final String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
@@ -195,22 +194,26 @@ public class UserService implements UserDetailsService {
      * Supprime un rôle par son ID (soft delete).
      * 
      * @param id l'ID du rôle à supprimer
+     * @param userDto les nouvelles données
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
-    public void putUser(final String id, final UserDto user) {
-        user.setId(id);
-        if (existsByUsername(user.getUsername()) && !userRepository.findByIdAndStatut(id, Statut.ACTIVE)
-            .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvé"))
-        .getUsername().equals(user.getUsername())) {
-            throw new RuntimeException("Username already taken");
-        }
-        if (existsByEmail(user.getEmail()) && !userRepository.findByIdAndStatut(id, Statut.ACTIVE)
-            .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvé"))
-            .getEmail().equals(user.getEmail())) {
-            throw new RuntimeException("Email already used");
-        }
-        userRepository.save(mapper.maps(user));
+    public void putUser(final String id, final UserDto userDto) {
+
+    userDto.setId(id);
+
+    User existingUser = userRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+
+    if (!existingUser.getUsername().equals(userDto.getUsername()) && existsByUsername(userDto.getUsername())) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken");
     }
+    if (!existingUser.getEmail().equals(userDto.getEmail()) && existsByEmail(userDto.getEmail())) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already used");
+    }
+
+    User updatedUser = mapper.maps(userDto);
+    userRepository.save(updatedUser);
+}
 
     /**
      * Modifie un rôle existant.

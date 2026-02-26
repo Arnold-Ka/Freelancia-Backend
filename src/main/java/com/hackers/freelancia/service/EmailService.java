@@ -1,10 +1,13 @@
 package com.hackers.freelancia.service;
 
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import com.hackers.freelancia.config.StartupLogger;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -16,6 +19,10 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final StartupLogger logger;
+    private final Environment environment;
+
+
 
     /**
      * Envoie un email d'activation de compte à l'utilisateur.
@@ -26,9 +33,14 @@ public class EmailService {
      */
     public void sendActivationEmail(String to, String token) throws MessagingException {
 
+        String port = environment.getProperty("server.port");
+        String contextPath = environment.getProperty("server.servlet.context-path");
+        String externalUrl = logger.getExternalUrl(port, contextPath);
+
+
         Context context = new Context();
         context.setVariable("activationLink",
-                "http://192.168.1.86:33726/api/v1/auth/activate?token=" + token);
+                externalUrl+"/auth/activate?token=" + token);
 
         String html = templateEngine.process("activation-email", context);
 

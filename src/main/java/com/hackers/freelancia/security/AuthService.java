@@ -2,11 +2,13 @@ package com.hackers.freelancia.security;
 
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.hackers.freelancia.config.Statut;
 import com.hackers.freelancia.entity.Role;
@@ -40,11 +42,13 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userService.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT, "Username already taken");
         }
 
         if (userService.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already used");
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT, "Email already used");
         }
 
         User user = new User();
@@ -58,7 +62,7 @@ public class AuthService {
 
         userService.postUser(mapper.maps(user));
 
-        User savedUser = userService.getByUsername(user.getUsername());
+        User savedUser = userService.loadUserByUsername(user.getUsername());
 
         String activationToken = tokenService.generateActivationToken(savedUser);
 

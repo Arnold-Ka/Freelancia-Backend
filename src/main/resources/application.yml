@@ -56,3 +56,13 @@ management:
       show-details: always
 
   
+logging:
+  level:
+    root: INFO
+    org:
+      hibernate: DEBUG
+      springframework:
+        web: DEBUG
+        security: DEBUG
+    hackers:
+      freelancia: DEBUG
