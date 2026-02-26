@@ -2,6 +2,7 @@ package com.hackers.freelancia.security;
 
 import java.util.Set;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +40,7 @@ public class AuthService {
      * @param request les informations d'inscription de l'utilisateur
      * @return une réponse d'authentification contenant un message de succès
      */
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) throws NotFoundException {
 
         if (userService.existsByUsername(request.getUsername())) {
             throw new ResponseStatusException(
@@ -85,7 +86,7 @@ public class AuthService {
      * @return une réponse d'authentification contenant le token JWT et le token de
      *         rafraîchissement
      */
-    public AuthResponse login(AuthRequest request) {
+    public AuthResponse login(AuthRequest request) throws NotFoundException {
 
         User user = (User) authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -148,7 +149,7 @@ public class AuthService {
      * @param token       le token de réinitialisation envoyé par email
      * @param newPassword le nouveau mot de passe à définir
      */
-    public void resetPassword(String token, String newPassword) {
+    public void resetPassword(String token, String newPassword) throws NotFoundException {
 
         User user = tokenService.findUserByResetToken(token)
                 .orElseThrow(() -> new RuntimeException("Token invalide ou expiré"));
@@ -165,7 +166,7 @@ public class AuthService {
      *
      * @param token le token d'activation envoyé par email
      */
-    public void activateAccount(String token) {
+    public void activateAccount(String token)  throws NotFoundException{
         User user = tokenService.findUserByActivationToken(token)
                 .orElseThrow(() -> new RuntimeException("Token d'activation invalide ou expiré"));
 

@@ -3,6 +3,7 @@ package com.hackers.freelancia.controller;
 import java.util.List;
 import java.util.Set;
 
+import com.hackers.freelancia.config.ApiResponse;
 import com.hackers.freelancia.dto.CategoryDto;
 import com.hackers.freelancia.dto.FreelanceExperienceDto;
 import com.hackers.freelancia.dto.FreelanceProfileDto;
@@ -20,6 +21,7 @@ import com.hackers.freelancia.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,38 +44,39 @@ import org.springframework.web.bind.annotation.PathVariable;
  */
 @RestController
 @RequiredArgsConstructor
-public class freelanciaController {
+public class freelanciaController  {
     private final FreelanciaService service;
     private final UserService userService;
     private final FreelanceProfileService freelanceService;
 
 
     @GetMapping("/categories/{id}")
-    public ResponseEntity<CategoryDto> fetchCategory(@PathVariable final String id){
-        return ResponseEntity.ok(service.getCategory(id));
+    public ResponseEntity<ApiResponse<CategoryDto>> fetchCategory(@PathVariable final String id) throws NotFoundException{
+        return ResponseEntity.ok(ApiResponse.success(service.getCategory(id)));
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<List<CategoryDto>> fetchCategories() {
-        return  ResponseEntity.ok(service.getCategories());
+    public ResponseEntity<ApiResponse<List<CategoryDto>>> fetchCategories() throws NotFoundException {
+        return  ResponseEntity.ok(ApiResponse.success(service.getCategories()));
     }
 
     @PostMapping("/categories")
-    public ResponseEntity<String> createCategory(@RequestBody final CategoryDto categoryDto){
+    public ResponseEntity<ApiResponse<String>> createCategory(@RequestBody final CategoryDto categoryDto) throws NotFoundException{
         service.postCategory(categoryDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Category Crée avec succèes");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Category enregistrer avec succès"));
     }
     
     @PutMapping("/categories/{id}")
-    public ResponseEntity<String> updateCategory(@PathVariable final String id, @RequestBody final CategoryDto categoryDto){
+    public ResponseEntity<ApiResponse<String>> updateCategory(@PathVariable final String id, @RequestBody final CategoryDto categoryDto)
+    throws NotFoundException {
         service.putCategory(id, categoryDto);
-        return ResponseEntity.status(HttpStatus.OK).body("Categorie mis a jour avec succès");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Categorie mis a jour avec succès"));
     }
 
     @DeleteMapping("/categories/{id}")
-    public ResponseEntity<String> dropCategory(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropCategory(@PathVariable final String id) throws NotFoundException {
         service.deleteCategory(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Category Sypprimer avec Succès");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Category Sypprimer avec Succès"));
     }
     
     /**
@@ -81,8 +84,8 @@ public class freelanciaController {
      * @return la liste de skills
      */
     @GetMapping("/skills")
-    public ResponseEntity<List<SkillsDto>> getAllSkills(){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getSkills());
+    public ResponseEntity<ApiResponse<List<SkillsDto>>> getAllSkills() throws NotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getSkills()));
     }
     /**
      * Recupéré un seul skills grace a son identifiant.
@@ -90,8 +93,8 @@ public class freelanciaController {
      * @return le skills
      */
     @GetMapping("/skills/{id}")
-    public ResponseEntity<SkillsDto> getSkillById(@PathVariable final String id){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getSkill(id));
+    public ResponseEntity<ApiResponse<SkillsDto>> getSkillById(@PathVariable final String id) throws NotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getSkill(id)));
     }
 
     /**
@@ -99,9 +102,9 @@ public class freelanciaController {
      * @param skillsDto les données sur le skill
      */
     @PostMapping("/skills")
-    public ResponseEntity<String> createSkill(@RequestBody final SkillsDto skillsDto){
+    public ResponseEntity<ApiResponse<String>> createSkill(@RequestBody final SkillsDto skillsDto) throws NotFoundException {
         service.postSkill(skillsDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Skill created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Skill created successfully"));
     }
 
     /**
@@ -110,9 +113,10 @@ public class freelanciaController {
      * @param skillsDto les nouvelles données sur le skills
      */ 
     @PutMapping("/skills/{id}")
-    public ResponseEntity<String> updateSkills(@PathVariable final String id, @RequestBody final SkillsDto skillsDto) {
+    public ResponseEntity<ApiResponse<String>> updateSkills(@PathVariable final String id, @RequestBody final SkillsDto skillsDto)
+                                                    throws NotFoundException {
         service.putSkill(id, skillsDto);
-        return ResponseEntity.status(HttpStatus.OK).body("Skill updated successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Skill updated successfully"));
     }
 
     /**
@@ -120,32 +124,33 @@ public class freelanciaController {
      * @param id l'identifiant
      */
     @DeleteMapping("/skills/{id}")
-    public ResponseEntity<String> deleteSkill(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> deleteSkill(@PathVariable final String id) throws NotFoundException{
         service.deleteSkill(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Skill deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Skill deleted successfully"));
     }
 
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<UserDto> fetchUser(@PathVariable final String id){
-        return ResponseEntity.ok(userService.getUser(id));
+    public ResponseEntity<ApiResponse<UserDto>> fetchUser(@PathVariable final String id) throws NotFoundException{
+        return ResponseEntity.ok(ApiResponse.success(userService.getUser(id)));
     }
 
     @GetMapping("/users")
-    public ResponseEntity<Set<UserDto>> fetchUsers(){
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
+    public ResponseEntity<ApiResponse<Set<UserDto>>> fetchUsers() throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userService.getAllUsers()));
     }
 
     @PostMapping("/users")
-    public ResponseEntity<String> createUser(@RequestBody final UserDto userDto){
+    public ResponseEntity<ApiResponse<String>> createUser(@RequestBody final UserDto userDto) throws NotFoundException{
         userService.postUser(userDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Utilisateur créé avec succès");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Utilisateur créé avec succès"));
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<String> updateUser(@PathVariable final String id, @RequestBody final UserDto userDto){
+    public ResponseEntity<ApiResponse<String>> updanullteUser(@PathVariable final String id, @RequestBody final UserDto userDto)
+                                                    throws NotFoundException{
         userService.putUser(id, userDto);
-        return ResponseEntity.status(HttpStatus.OK).body("Utilisateur mis a jour avec succès");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Utilisateur mis a jour avec succès"));
     }
 
     /**
@@ -153,9 +158,9 @@ public class freelanciaController {
      * @param id l'identifiant de l'utilisateur
      */
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> dropUser(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropUser(@PathVariable final String id) throws NotFoundException{
         userService.deleteUser(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Utilisateur Supprimé avec Succès");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Utilisateur Supprimé avec Succès"));
     }
     
     @GetMapping("/freelance-profiles/{id}")
@@ -265,104 +270,107 @@ public class freelanciaController {
         return ResponseEntity.status(HttpStatus.OK).body("Note Supprimé avec succès.");
     }
     @GetMapping("/subscriptions/{id}")
-    public ResponseEntity<SubscriptionDto> fetchSubscription(@PathVariable final String id){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getSubscription(id));
+    public ResponseEntity<ApiResponse<SubscriptionDto>> fetchSubscription(@PathVariable final String id)
+                                                throws NotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getSubscription(id)));
     }
     @GetMapping("/subscriptions")
-    public ResponseEntity<List<SubscriptionDto>> fetchSubscriptions(){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getSubscriptions());
+    public ResponseEntity<ApiResponse<List<SubscriptionDto>>> fetchSubscriptions() throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getSubscriptions()));
     }
     
     @PostMapping("/subscriptions")
-    public ResponseEntity<String> createSubscription(@RequestBody final SubscriptionDto subscription){
+    public ResponseEntity<String> createSubscription(@RequestBody final SubscriptionDto subscription) throws NotFoundException{
         service.postSubscription(subscription);
         return ResponseEntity.status(HttpStatus.CREATED).body("Abonnement créé avec succès.");
     }
     @PutMapping("/subscriptions/{id}")
-    public ResponseEntity<String> updateSubscription(@PathVariable final String id, @RequestBody final SubscriptionDto subscription){
+    public ResponseEntity<ApiResponse<String>> updateSubscription(@PathVariable final String id, @RequestBody final SubscriptionDto subscription)
+                                    throws NotFoundException {
         service.PutSubscription(id, subscription);
-        return ResponseEntity.status(HttpStatus.OK).body("Abonnement modifié avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Abonnement modifié avec succès."));
     }
     @DeleteMapping("/subscriptions/{id}")
-    public ResponseEntity<String> dropSubscription(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropSubscription(@PathVariable final String id) throws NotFoundException{
         service.deleteSubscription(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Abonnement Supprimé avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Abonnement Supprimé avec succès."));
     }
 
     @GetMapping("/missions/{id}")
-    public ResponseEntity<MissionDto> fetchMission(@PathVariable final String id){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getMission(id));
+    public ResponseEntity<ApiResponse<MissionDto>> fetchMission(@PathVariable final String id) throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getMission(id)));
     }
 
     @GetMapping("/missions")
-    public ResponseEntity<List<MissionDto>> fetchMissions(){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getMissions());
+    public ResponseEntity<ApiResponse<List<MissionDto>>> fetchMissions() throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getMissions()));
     }
 
     @PostMapping("/missions")
-    public ResponseEntity<String> createMission(@RequestBody final MissionDto mission){
+    public ResponseEntity<ApiResponse<String>> createMission(@RequestBody final MissionDto mission)throws NotFoundException{
         service.postMission(mission);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Mission créé avec succès.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Mission créé avec succès."));
     }
     @PutMapping("/missions/{id}")
-    public ResponseEntity<String> updateMission(@PathVariable final String id, @RequestBody final MissionDto mission){
+    public ResponseEntity<ApiResponse<String>> updateMission(@PathVariable final String id, @RequestBody final MissionDto mission) throws NotFoundException{
         service.PutMission(id, mission);
-        return ResponseEntity.status(HttpStatus.OK).body("Mission modifié avec succès.");  
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Mission modifié avec succès."));  
     }
     @DeleteMapping("/missions/{id}")
-    public ResponseEntity<String> dropMission(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropMission(@PathVariable final String id) throws NotFoundException{
         service.deleteMission(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Mission Supprimé avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Mission Supprimé avec succès."));
     }
 
     @GetMapping("/payments/{id}")
-    public ResponseEntity<PaymentDto> fetchPayment(@PathVariable final String id){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getPayment(id));
+    public ResponseEntity<ApiResponse<PaymentDto>> fetchPayment(@PathVariable final String id) throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getPayment(id)));
     }
 
     @GetMapping("/payments")
-    public ResponseEntity<List<PaymentDto>> fetchPayments(){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getPayments());
+    public ResponseEntity<ApiResponse<List<PaymentDto>>> fetchPayments() throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getPayments()));
     }
 
     @PostMapping("/payments")
-    public ResponseEntity<String> createPayment(@RequestBody final PaymentDto payment){
+    public ResponseEntity<ApiResponse<String>> createPayment(@RequestBody final PaymentDto payment) throws NotFoundException{
         service.postPayment(payment);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Paiement créé avec succès.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Paiement créé avec succès."));
     }
     @PutMapping("/payments/{id}")
-    public ResponseEntity<String> updatePayment(@PathVariable final String id, @RequestBody final PaymentDto payment){
+    public ResponseEntity<ApiResponse<String>> updatePayment(@PathVariable final String id, @RequestBody final PaymentDto payment)
+                                                    throws NotFoundException{
         service.PutPayment(id, payment);
-        return ResponseEntity.status(HttpStatus.OK).body("Paiement modifié avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Paiement modifié avec succès."));
     }
     @DeleteMapping("/payments/{id}")
-    public ResponseEntity<String> dropPayment(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropPayment(@PathVariable final String id) throws NotFoundException{
         service.deletePayment(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Paiement Supprimé avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Paiement Supprimé avec succès."));
     }
     @GetMapping("/reviews/{id}")
-    public ResponseEntity<ReviewDto> fetchReview(@PathVariable final String id){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getReview(id));
+    public ResponseEntity<ApiResponse<ReviewDto>> fetchReview(@PathVariable final String id) throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getReview(id)));
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewDto>> fetchReviews(){
-        return ResponseEntity.status(HttpStatus.OK).body(service.getReviews());
+    public ResponseEntity<ApiResponse<List<ReviewDto>>> fetchReviews() throws NotFoundException{
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(service.getReviews()));
     }
     @PostMapping("/reviews")
-    public ResponseEntity<String> createReview(@RequestBody final ReviewDto review){
+    public ResponseEntity<ApiResponse<String>> createReview(@RequestBody final ReviewDto review) throws NotFoundException{
         service.postReview(review);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Review créé avec succès.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Review créé avec succès."));
     }
     @PutMapping("/reviews/{id}")
-    public ResponseEntity<String> updateReview(@PathVariable final String id, @RequestBody final ReviewDto review){
+    public ResponseEntity<ApiResponse<String>> updateReview(@PathVariable final String id, @RequestBody final ReviewDto review) throws NotFoundException{
         service.PutReview(id, review);
-        return ResponseEntity.status(HttpStatus.OK).body("Review modifié avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Review modifié avec succès."));
     }
     @DeleteMapping("/reviews/{id}")
-    public ResponseEntity<String> dropReview(@PathVariable final String id){
+    public ResponseEntity<ApiResponse<String>> dropReview(@PathVariable final String id) throws NotFoundException{
         service.deleteReview(id);
-        return ResponseEntity.status(HttpStatus.OK).body("Review Supprimé avec succès.");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Review Supprimé avec succès."));
     }
 
 }

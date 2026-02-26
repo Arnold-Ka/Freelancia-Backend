@@ -292,6 +292,7 @@ public interface Mapper {
      * @param role
      * @return
      */
+    @Mapping(target = "permissionsName", ignore = true)
     RoleDto maps(Role role);
 
     /**

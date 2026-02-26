@@ -3,6 +3,7 @@ package com.hackers.freelancia.security;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hackers.freelancia.config.ApiResponse;
 import com.hackers.freelancia.dto.PermissionDto;
 import com.hackers.freelancia.dto.RoleDto;
 import com.hackers.freelancia.service.UserService;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -40,11 +43,11 @@ public class AuthController {
      * @return une réponse contenant le token JWT et le token de rafraîchissement
      */
     @PostMapping("/auth/register")
-    public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request) throws NotFoundException{
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(authService.register(request));
+                .body(ApiResponse.success(authService.register(request)));
     }
 
     /**
@@ -54,9 +57,9 @@ public class AuthController {
      * @return une réponse indiquant que le compte a été activé avec succès
      */
     @GetMapping("/auth/activate")
-    public ResponseEntity<String> activateAccount(@RequestParam String token) {
+    public ResponseEntity<ApiResponse<String>> activateAccount(@RequestParam String token) throws NotFoundException {
         authService.activateAccount(token);
-        return ResponseEntity.ok("Compte activé avec succès !");
+        return ResponseEntity.ok(ApiResponse.success("Compte activé avec succès !"));
     }
 
     /**
@@ -67,9 +70,9 @@ public class AuthController {
      * @return une réponse contenant le token JWT et le token de rafraîchissement
      */
     @PostMapping("/auth/login")
-    public ResponseEntity<AuthResponse> login(
-            @Valid @RequestBody AuthRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody AuthRequest request) throws NotFoundException {
+        return ResponseEntity.ok(ApiResponse.success(authService.login(request)));
     }
 
     /**
@@ -110,13 +113,13 @@ public class AuthController {
      *         succès
      */
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(
+    public ResponseEntity<ApiResponse<String>> resetPassword(
             @RequestParam String token,
-            @RequestParam String newPassword) {
+            @RequestParam String newPassword) throws NotFoundException {
 
         authService.resetPassword(token, newPassword);
 
-        return ResponseEntity.ok("Mot de passe réinitialisé avec succès");
+        return ResponseEntity.ok(ApiResponse.success("Mot de passe réinitialisé avec succès"));
     }
 
     /**
@@ -146,12 +149,12 @@ public class AuthController {
      * @return une réponse indiquant que le rôle a été créé avec succès
      */
     @PostMapping("auth/roles")
-    public ResponseEntity<String> createRole(
-            @Valid @RequestBody RoleDto roleDto) {
+    public ResponseEntity<ApiResponse<String>> createRole(
+            @Valid @RequestBody RoleDto roleDto) throws NotFoundException {
         userService.postRole(roleDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Role created successfully");
+                .body(ApiResponse.success("Role created successfully"));
     }
 
     /**
@@ -160,8 +163,8 @@ public class AuthController {
      * @return une réponse contenant la liste des rôles
      */
     @GetMapping("auth/roles")
-    public ResponseEntity<Set<RoleDto>> getRoles() {
-        return ResponseEntity.ok(userService.getAllRoles());
+    public ResponseEntity<ApiResponse<List<RoleDto>>> getRoles() throws NotFoundException {
+        return ResponseEntity.ok(ApiResponse.success(userService.getAllRoles()));
     }
 
     /**
@@ -172,11 +175,11 @@ public class AuthController {
      * @return une réponse indiquant que le rôle a été mis à jour avec succès
      */
     @PutMapping("/roles/{id}")
-    public ResponseEntity<String> updateRole(
+    public ResponseEntity<ApiResponse<String>> updateRole(
             @PathVariable String id,
-            @Valid @RequestBody RoleDto roleDto) {
+            @Valid @RequestBody RoleDto roleDto) throws NotFoundException {
         userService.putRole(id, roleDto);
-        return ResponseEntity.ok("Role updated successfully");
+        return ResponseEntity.ok(ApiResponse.success("Role updated successfully"));
     }
 
     /**
@@ -186,9 +189,9 @@ public class AuthController {
      * @return une réponse indiquant que le rôle a été supprimé avec succès
      */
     @DeleteMapping("/roles/{id}")
-    public ResponseEntity<String> deleteRole(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<String>> deleteRole(@PathVariable String id) throws NotFoundException {
         userService.deleteRoleById(id);
-        return ResponseEntity.ok("Role deleted successfully");
+        return ResponseEntity.ok(ApiResponse.success("Role deleted successfully"));
     }
 
     /*
@@ -204,12 +207,12 @@ public class AuthController {
      * @return une réponse indiquant que la permission a été créée avec succès
      */
     @PostMapping("/permissions")
-    public ResponseEntity<String> createPermission(
-            @Valid @RequestBody PermissionDto permissionDto) {
+    public ResponseEntity<ApiResponse<String>> createPermission (
+            @Valid @RequestBody PermissionDto permissionDto) throws NotFoundException {
         userService.postPermission(permissionDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Permission created successfully");
+                .body(ApiResponse.success("Permission created successfully"));
     }
 
     /**
@@ -218,8 +221,8 @@ public class AuthController {
      * @return une réponse contenant la liste des permissions
      */
     @GetMapping("/permissions")
-    public ResponseEntity<Set<PermissionDto>> getPermissions() {
-        return ResponseEntity.ok(userService.getAllPermissions());
+    public ResponseEntity<ApiResponse<Set<PermissionDto>>> getPermissions() throws NotFoundException {
+        return ResponseEntity.ok(ApiResponse.success(userService.getAllPermissions()));
     }
 
     /**
@@ -230,11 +233,11 @@ public class AuthController {
      * @return une réponse indiquant que la permission a été mise à jour avec succès
      */
     @PutMapping("/permissions/{id}")
-    public ResponseEntity<String> updatePermission(
+    public ResponseEntity<ApiResponse<String>> updatePermission(
             @PathVariable String id,
-            @Valid @RequestBody PermissionDto permissionDto) {
+            @Valid @RequestBody PermissionDto permissionDto) throws NotFoundException {
         userService.putPermission(id, permissionDto);
-        return ResponseEntity.ok("Permission updated successfully");
+        return ResponseEntity.ok(ApiResponse.success("Permission updated successfully"));
     }
 
     /**
@@ -244,8 +247,8 @@ public class AuthController {
      * @return une réponse indiquant que la permission a été supprimée avec succès
      */
     @DeleteMapping("/permissions/{id}")
-    public ResponseEntity<String> deletePermission(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<String>> deletePermission(@PathVariable String id) throws NotFoundException {
         userService.deletePermissionById(id);
-        return ResponseEntity.ok("Permission deleted successfully");
+        return ResponseEntity.ok(ApiResponse.success("Permission deleted successfully"));
     }
 }
