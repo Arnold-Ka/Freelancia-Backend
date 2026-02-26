@@ -83,7 +83,7 @@ public class StartupLogger implements ApplicationListener<ApplicationReadyEvent>
      * @param contextPath le chemin de contexte utilisé par l'application
      * @return l'URL externe de l'ordinateur
      */
-    private String getExternalUrl(String port, String contextPath) {
+    public String getExternalUrl(String port, String contextPath) {
         try {
             var interfaces = java.net.NetworkInterface.getNetworkInterfaces();
 
