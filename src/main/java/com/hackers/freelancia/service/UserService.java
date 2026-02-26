@@ -1,5 +1,8 @@
 package com.hackers.freelancia.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,12 +67,21 @@ public class UserService implements UserDetailsService {
      * 
      * @param role le DTO du rôle à créer
      */
-    public void postRole(final RoleDto role) {
-        if (roleRepository.existsByName(role.getName())) {
+    public void postRole(final RoleDto roleDto) {
+        if (roleRepository.existsByName(roleDto.getName())) {
             throw new RuntimeException("Role already exists");
         }
-        role.setId(Utils.generateId());
-        roleRepository.save(mapper.maps(role));
+        roleDto.setId(Utils.generateId());
+        List<String> permissionsName = roleDto.getPermissionsName();
+        Set<Permission> permissions = new HashSet<>();
+        for(String permissionName: permissionsName){
+            permissions.add(permissionRepository.findByNameAndStatut(permissionName,Statut.ACTIVE).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Permission non Trouvé")
+            ));
+        }
+        Role role = mapper.maps(roleDto);
+        role.setPermissions(permissions);
+        roleRepository.save(role);
     }
 
     /**
@@ -89,7 +101,8 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
     public UserDto getUser(@NonNull final String id) {
-        return mapper.maps(userRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(() -> new RuntimeException("User not found")));
+        return mapper.maps(userRepository.findByIdAndStatut(id, Statut.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("User not found")));
     }
 
     /**
@@ -128,8 +141,7 @@ public class UserService implements UserDetailsService {
      */
     public User getByUsername(final String username) {
         return userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée")
-        );
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée"));
     }
 
     /**
@@ -139,10 +151,9 @@ public class UserService implements UserDetailsService {
      * @return User l'utilisateur trouvé
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
-      public User getByEmail(final String email) {
+    public User getByEmail(final String email) {
         return userRepository.findByEmail(email);
     }
-
 
     /**
      * Supprime un utilisateur par son ID (soft delete).
@@ -152,8 +163,7 @@ public class UserService implements UserDetailsService {
      */
     public void deleteUser(final String id) {
         User user = userRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée")
-        );
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée"));
         user.setStatut(Statut.DELETED);
         userRepository.save(user);
     }
@@ -178,7 +188,16 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
     public RoleDto getRoleById(@NonNull final String id) {
-        return mapper.maps(roleRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(() -> new RuntimeException("Role not found")));
+        Role role = roleRepository.findByIdAndStatut(id, Statut.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        RoleDto roleDto = mapper.maps(role);
+        Set<Permission> permissions = role.getPermissions();
+        List<String> permissionsString = new ArrayList<>();
+        for (Permission permission : permissions) {
+            permissionsString.add(permission.getName());
+        }
+        roleDto.setPermissionsName(permissionsString);
+        return roleDto;
     }
 
     /**
@@ -186,34 +205,47 @@ public class UserService implements UserDetailsService {
      * 
      * @return Set<RoleDto> l'ensemble des rôles sous forme de DTOs
      */
-    public Set<RoleDto> getAllRoles() {
-        return roleRepository.findAllActive().stream().map(mapper::maps).collect(Collectors.toSet());
+    public List<RoleDto> getAllRoles() {
+        List<Role> roles = roleRepository.findAllActive();
+        List<RoleDto> roleDtos = new ArrayList<>();
+
+        for (Role role : roles) {
+            RoleDto roleDto = mapper.maps(role);
+            Set<Permission> permissions = role.getPermissions();
+            List<String> permissionsString = new ArrayList<>();
+            for (Permission permission : permissions) {
+                permissionsString.add(permission.getName());
+            }
+            roleDto.setPermissionsName(permissionsString);
+            roleDtos.add(roleDto);
+        }
+        return roleDtos;
     }
 
     /**
      * Supprime un rôle par son ID (soft delete).
      * 
-     * @param id l'ID du rôle à supprimer
+     * @param id      l'ID du rôle à supprimer
      * @param userDto les nouvelles données
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
     public void putUser(final String id, final UserDto userDto) {
 
-    userDto.setId(id);
+        userDto.setId(id);
 
-    User existingUser = userRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
 
-    if (!existingUser.getUsername().equals(userDto.getUsername()) && existsByUsername(userDto.getUsername())) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken");
+        if (!existingUser.getUsername().equals(userDto.getUsername()) && existsByUsername(userDto.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already taken");
+        }
+        if (!existingUser.getEmail().equals(userDto.getEmail()) && existsByEmail(userDto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already used");
+        }
+
+        User updatedUser = mapper.maps(userDto);
+        userRepository.save(updatedUser);
     }
-    if (!existingUser.getEmail().equals(userDto.getEmail()) && existsByEmail(userDto.getEmail())) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already used");
-    }
-
-    User updatedUser = mapper.maps(userDto);
-    userRepository.save(updatedUser);
-}
 
     /**
      * Modifie un rôle existant.
@@ -222,12 +254,21 @@ public class UserService implements UserDetailsService {
      * @param role le DTO du rôle avec les nouvelles données
      * @throws RuntimeException si le rôle n'est pas trouvé
      */
-    public void putRole(final String id, final RoleDto role) {
-        role.setId(id);
-        if (roleRepository.existsByName(role.getName()) && !getRoleById(id).getName().equals(role.getName())) {
+    public void putRole(final String id, final RoleDto roleDto) {
+        roleDto.setId(id);
+        if (roleRepository.existsByName(roleDto.getName()) && !getRoleById(id).getName().equals(roleDto.getName())) {
             throw new RuntimeException("Role already exists");
         }
-        roleRepository.save(mapper.maps(role));
+        List<String> permissionsName = roleDto.getPermissionsName();
+        Set<Permission> permissions = new HashSet<>();
+        for(String permissionName: permissionsName){
+            permissions.add(permissionRepository.findByNameAndStatut(permissionName,Statut.ACTIVE).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Permission non Trouvé")
+            ));
+        }
+        Role role = mapper.maps(roleDto);
+        role.setPermissions(permissions);
+        roleRepository.save(role);
     }
 
     /**

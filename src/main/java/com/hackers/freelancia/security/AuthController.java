@@ -18,6 +18,7 @@ import com.hackers.freelancia.dto.PermissionDto;
 import com.hackers.freelancia.dto.RoleDto;
 import com.hackers.freelancia.service.UserService;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -160,7 +161,7 @@ public class AuthController {
      * @return une réponse contenant la liste des rôles
      */
     @GetMapping("auth/roles")
-    public ResponseEntity<Set<RoleDto>> getRoles() {
+    public ResponseEntity<List<RoleDto>> getRoles() {
         return ResponseEntity.ok(userService.getAllRoles());
     }
 
