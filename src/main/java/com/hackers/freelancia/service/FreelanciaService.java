@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return la category
      */
-    public CategoryDto getCategory(final String id) {
+    public CategoryDto getCategory(final String id) throws NotFoundException{
         return mapper.maps(categoryRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category non Trouvée")));
     }
@@ -75,7 +76,7 @@ public class FreelanciaService {
      * 
      * @return la liste des categories
      */
-    public List<CategoryDto> getCategories() {
+    public List<CategoryDto> getCategories() throws NotFoundException{
         return categoryRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
@@ -84,7 +85,7 @@ public class FreelanciaService {
      * 
      * @param categoryDto les nouvelles informations sur la category
      */
-    public void postCategory(final CategoryDto categoryDto) {
+    public void postCategory(final CategoryDto categoryDto) throws NotFoundException{
         if (categoryDto.getName() == null || categoryDto.getName() == "") {
             new IllegalArgumentException("Le nom est vide");
         }
@@ -102,7 +103,7 @@ public class FreelanciaService {
      * @param id          l'identifiant
      * @param categoryDto les nouvelles informations
      */
-    public void putCategory(final String id, final CategoryDto categoryDto) {
+    public void putCategory(final String id, final CategoryDto categoryDto) throws NotFoundException {
         if (!categoryRepository.existsById(id)) {
             new IllegalArgumentException("Category non Trouvée");
         }
@@ -122,7 +123,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteCategory(final String id) {
+    public void deleteCategory(final String id) throws NotFoundException {
         Category category = categoryRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category non Trouvée"));
         category.setStatut(Statut.DELETED);
@@ -134,7 +135,7 @@ public class FreelanciaService {
      * 
      * @return la liste de skills
      */
-    public List<SkillsDto> getSkills() {
+    public List<SkillsDto> getSkills() throws NotFoundException {
         return skillsRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
@@ -144,7 +145,7 @@ public class FreelanciaService {
      * @param id l'identifiant
      * @return le skills
      */
-    public SkillsDto getSkill(final String id) {
+    public SkillsDto getSkill(final String id) throws NotFoundException {
         return mapper.maps(skillsRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
@@ -154,7 +155,7 @@ public class FreelanciaService {
      * 
      * @param skillsDto les nouvelles informations sur le skills
      */
-    public void postSkill(final SkillsDto skillsDto) {
+    public void postSkill(final SkillsDto skillsDto) throws NotFoundException {
         System.out.println(skillsDto.getCategoryId());
         if (skillsDto.getName() == null || skillsDto.getName() == "") {
             new IllegalArgumentException("Le nom est vide");
@@ -173,7 +174,7 @@ public class FreelanciaService {
      * @param id        l'identifiant
      * @param skillsDto les nouvelles informations
      */
-    public void putSkill(final String id, final SkillsDto skillsDto) {
+    public void putSkill(final String id, final SkillsDto skillsDto) throws NotFoundException {
         Skills skills = mapper.maps(skillsDto);
         skills.setId(id);
         skillsRepository.save(skills);
@@ -184,7 +185,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteSkill(final String id) {
+    public void deleteSkill(final String id) throws NotFoundException {
         Skills skills = skillsRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skills non Trouvé"));
         skills.setStatut(Statut.DELETED);
@@ -196,7 +197,7 @@ public class FreelanciaService {
      * 
      * @return la liste des review
      */
-    public List<ReviewDto> getReviews() {
+    public List<ReviewDto> getReviews() throws NotFoundException {
         return reviewRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
@@ -206,7 +207,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return la review
      */
-    public ReviewDto getReview(final String id) {
+    public ReviewDto getReview(final String id) throws NotFoundException {
         return mapper.maps(reviewRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review non Trové")));
     }
@@ -216,7 +217,7 @@ public class FreelanciaService {
      * 
      * @param reviewDto les données de la review
      */
-    public void postReview(final ReviewDto reviewDto) {
+    public void postReview(final ReviewDto reviewDto) throws NotFoundException {
         if (!userRepository.existsById(reviewDto.getUserId())) {
             new IllegalArgumentException("Utilisateur non Trové");
         }
@@ -234,7 +235,7 @@ public class FreelanciaService {
      * @param id        l'identifiant de la review a modifier
      * @param reviewDto les nouvelles données de la review
      */
-    public void PutReview(final String id, final ReviewDto reviewDto) {
+    public void PutReview(final String id, final ReviewDto reviewDto) throws NotFoundException {
         if (!userRepository.existsById(reviewDto.getUserId())) {
             new IllegalArgumentException("Utilisateur non Trové");
         }
@@ -251,7 +252,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteReview(final String id) {
+    public void deleteReview(final String id) throws NotFoundException {
         Review review = reviewRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review non Trouvé"));
         review.setStatut(Statut.DELETED);
@@ -264,7 +265,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return la subscription
      */
-    public SubscriptionDto getSubscription(final String id) {
+    public SubscriptionDto getSubscription(final String id) throws NotFoundException {
         return mapper.maps(subscriptionRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription non Trové")));
     }
@@ -281,11 +282,11 @@ public class FreelanciaService {
      * 
      * @param subscriptionDto les données de la subscription
      */
-    public List<SubscriptionDto> getSubscriptions() {
+    public List<SubscriptionDto> getSubscriptions() throws NotFoundException {
         return subscriptionRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
-    public void postSubscription(final SubscriptionDto subscriptionDto) {
+    public void postSubscription(final SubscriptionDto subscriptionDto) throws NotFoundException {
         if (!userRepository.existsById(subscriptionDto.getFreelanceProfileId())) {
             throw new IllegalArgumentException("Utilisateur non Trové");
         }
@@ -300,7 +301,7 @@ public class FreelanciaService {
      * @param id              l'identifiant de la subscription a modifier
      * @param subscriptionDto les nouvelles données de la subscription
      */
-    public void PutSubscription(final String id, final SubscriptionDto subscriptionDto) {
+    public void PutSubscription(final String id, final SubscriptionDto subscriptionDto) throws NotFoundException {
         if (!subscriptionRepository.existsById(id)) {
             throw new IllegalArgumentException("Subscription non Trové");
         }
@@ -317,7 +318,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteSubscription(final String id) {
+    public void deleteSubscription(final String id) throws NotFoundException {
         Subscription subscription = subscriptionRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription non Trouvé"));
         subscription.setStatut(Statut.DELETED);
@@ -330,7 +331,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return le payment
      */
-    public PaymentDto getPayment(final String id) {
+    public PaymentDto getPayment(final String id) throws NotFoundException {
         return mapper.maps(paymentRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment non Trové")));
     }
@@ -340,7 +341,7 @@ public class FreelanciaService {
      * 
      * @return la liste des payments
      */
-    public List<PaymentDto> getPayments() {
+    public List<PaymentDto> getPayments() throws NotFoundException {
         return paymentRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
@@ -349,7 +350,7 @@ public class FreelanciaService {
      * 
      * @return la liste des payments
      */
-    public List<PaymentDto> getPaymentsByMissionId(final String missionId) {
+    public List<PaymentDto> getPaymentsByMissionId(final String missionId) throws NotFoundException {
         return paymentRepository.findByMissionIdAndStatut(missionId, Statut.ACTIVE).stream().map(mapper::maps).toList();
     }
 
@@ -358,7 +359,7 @@ public class FreelanciaService {
      * 
      * @param paymentDto les données de la payment
      */
-    public void postPayment(final PaymentDto paymentDto) {
+    public void postPayment(final PaymentDto paymentDto) throws NotFoundException {
         if (!missionRepository.existsById(paymentDto.getMissionId())) {
             throw new IllegalArgumentException("Mission non Trouvé");
         }
@@ -373,7 +374,7 @@ public class FreelanciaService {
      * @param id         l'identifiant de la payment a modifier
      * @param paymentDto les nouvelles données de la payment
      */
-    public void PutPayment(final String id, final PaymentDto paymentDto) {
+    public void PutPayment(final String id, final PaymentDto paymentDto) throws NotFoundException {
         if (!paymentRepository.existsById(id)) {
             throw new IllegalArgumentException("Payment non Trouvé");
         }
@@ -390,7 +391,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deletePayment(final String id) {
+    public void deletePayment(final String id) throws NotFoundException {
         Payment payment = paymentRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment non Trouvé"));
         payment.setStatut(Statut.DELETED);
@@ -403,7 +404,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return la mission
      */
-    public MissionDto getMission(final String id) {
+    public MissionDto getMission(final String id) throws NotFoundException {
         Mission mission = missionRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mission non Trouvé"));
         Set<Skills> skills = mission.getSkills();
@@ -418,7 +419,7 @@ public class FreelanciaService {
      * 
      * @return la liste des missions
      */
-    public List<MissionDto> getMissions() {
+    public List<MissionDto> getMissions() throws NotFoundException {
         List<Mission> missions = missionRepository.findAllActive();
         List<MissionDto> missionDtos = new ArrayList<>();
         for (Mission mission : missions) {
@@ -437,7 +438,7 @@ public class FreelanciaService {
      * 
      * @param missionDto les données de la mission
      */
-    public void postMission(final MissionDto missionDto) {
+    public void postMission(final MissionDto missionDto) throws NotFoundException {
         if (!userRepository.existsById(missionDto.getClientId())) {
             throw new IllegalArgumentException("Utilisateur non Trouvé");
         }
@@ -459,7 +460,7 @@ public class FreelanciaService {
      * @param id         l'identifiant de la mission a modifier
      * @param missionDto les nouvelles données de la mission
      */
-    public void PutMission(final String id, final MissionDto missionDto) {
+    public void PutMission(final String id, final MissionDto missionDto) throws NotFoundException {
         if (!missionRepository.existsById(id)) {
             throw new IllegalArgumentException("Mission non Trouvé");
         }
@@ -484,7 +485,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteMission(final String id) {
+    public void deleteMission(final String id)throws NotFoundException {
         Mission mission = missionRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mission non Trouvé"));
         mission.setStatut(Statut.DELETED);

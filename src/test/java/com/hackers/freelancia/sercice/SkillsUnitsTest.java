@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
 import com.hackers.freelancia.config.Statut;
 import com.hackers.freelancia.dto.CategoryDto;
@@ -114,7 +115,7 @@ public class SkillsUnitsTest {
 
 
     @Test
-    public void shouldReturnSkillsWhenFound(){
+    public void shouldReturnSkillsWhenFound() throws NotFoundException{
         Mockito.when(skillsRepository.findByIdAndStatut("freekdhhdfbbhdbhvdcia", Statut.ACTIVE)).thenReturn(Optional.of(skills));
 
         Mockito.when(mapper.maps(skills)).thenReturn(skillsDto);
