@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import com.hackers.freelancia.config.StartupLogger;
+import com.hackers.freelancia.config.NetworkUtils;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -19,10 +19,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
-    private final StartupLogger logger;
     private final Environment environment;
-
-
 
     /**
      * Envoie un email d'activation de compte à l'utilisateur.
@@ -33,14 +30,14 @@ public class EmailService {
      */
     public void sendActivationEmail(String to, String token) throws MessagingException {
 
-        String port = environment.getProperty("server.port");
-        String contextPath = environment.getProperty("server.servlet.context-path");
-        String externalUrl = logger.getExternalUrl(port, contextPath);
+        String port = environment.getProperty("server.port", "8080");
+        String contextPath = environment.getProperty("server.servlet.context-path", "");
+        String externalIp = NetworkUtils.getPublicIP();
 
+        String externalUrl = "http://" + externalIp + ":" + port + contextPath;
 
         Context context = new Context();
-        context.setVariable("activationLink",
-                externalUrl+"/auth/activate?token=" + token);
+        context.setVariable("activationLink", externalUrl + "/auth/activate?token=" + token);
 
         String html = templateEngine.process("activation-email", context);
 
