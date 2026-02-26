@@ -145,7 +145,7 @@ public class AuthController {
      * @param roleDto les informations du rôle à créer
      * @return une réponse indiquant que le rôle a été créé avec succès
      */
-    @PostMapping("/roles")
+    @PostMapping("auth/roles")
     public ResponseEntity<String> createRole(
             @Valid @RequestBody RoleDto roleDto) {
         userService.postRole(roleDto);
@@ -159,7 +159,7 @@ public class AuthController {
      *
      * @return une réponse contenant la liste des rôles
      */
-    @GetMapping("/roles")
+    @GetMapping("auth/roles")
     public ResponseEntity<Set<RoleDto>> getRoles() {
         return ResponseEntity.ok(userService.getAllRoles());
     }
