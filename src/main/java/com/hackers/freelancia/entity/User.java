@@ -12,6 +12,7 @@ import com.hackers.freelancia.config.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -33,7 +34,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "profile_picture", nullable = true)
     private String profilePicture;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     @Override

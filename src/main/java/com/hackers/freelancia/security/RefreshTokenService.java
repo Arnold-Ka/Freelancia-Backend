@@ -15,7 +15,6 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     @Value("${jwt.refresh-expiration}")
     private long refreshTokenDurationMs;
-    // Constructeur pour l'injection des dépendances
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
     }

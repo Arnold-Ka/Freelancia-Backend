@@ -3,24 +3,27 @@ package com.hackers.freelancia.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.hackers.freelancia.service.UserService;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig  {
+public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
     private final UserService userService;
 
-    // Constructeur pour l'injection des dépendances
     public SecurityConfig(JwtAuthenticationFilter jwtFilter, UserService userService) {
         this.jwtFilter = jwtFilter;
         this.userService = userService;
@@ -34,19 +37,22 @@ public class SecurityConfig  {
      * @throws Exception en cas d'erreur de configuration
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            ).userDetailsService(userService)
-        .addFilterBefore(jwtFilter,
-                UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
     /**
-     * Configure le bean BCryptPasswordEncoder pour le chiffrement des mots de passe.
+     * Configure le bean BCryptPasswordEncoder pour le chiffrement des mots de
+     * passe.
      *
      * @return une instance de BCryptPasswordEncoder
      */
@@ -56,16 +62,32 @@ public class SecurityConfig  {
     }
 
     /**
-     * Configure le bean AuthenticationManager pour l'authentification des utilisateurs.
+     * Configure le bean AuthenticationManager pour l'authentification des
+     * utilisateurs.
      *
-     * @param config la configuration d'authentification à utiliser pour créer l'AuthenticationManager
+     * @param config la configuration d'authentification à utiliser pour créer
+     *               l'AuthenticationManager
      * @return une instance d'AuthenticationManager
-     * @throws Exception en cas d'erreur lors de la création de l'AuthenticationManager
+     * @throws Exception en cas d'erreur lors de la création de
+     *                   l'AuthenticationManager
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Configure le bean AuthenticationProvider pour l'authentification des
+     * utilisateurs.
+     *
+     * @return une instance d'AuthenticationProvider
+     */
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
 }
