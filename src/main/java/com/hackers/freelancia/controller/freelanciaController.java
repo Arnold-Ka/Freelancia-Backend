@@ -135,6 +135,11 @@ public class freelanciaController  {
         return ResponseEntity.ok(ApiResponse.success(userService.getUser(id)));
     }
 
+    @GetMapping("users/me/{id}")
+    public ResponseEntity<UserDto> fetchUserInfos(final String username) throws Exception{
+        return ResponseEntity.ok(userService.getByUsername(username));
+    }
+
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<Set<UserDto>>> fetchUsers() throws NotFoundException{
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userService.getAllUsers()));

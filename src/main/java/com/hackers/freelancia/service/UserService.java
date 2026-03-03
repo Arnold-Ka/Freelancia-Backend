@@ -140,9 +140,9 @@ public class UserService implements UserDetailsService {
      * @return User l'utilisateur trouvé
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
-    public User getByUsername(final String username) throws NotFoundException {
-        return userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée"));
+    public UserDto getByUsername(final String username) throws NotFoundException {
+        return mapper.maps(userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée")));
     }
 
     /**
@@ -176,7 +176,8 @@ public class UserService implements UserDetailsService {
      * @throws RuntimeException si l'utilisateur n'est pas trouvé
      */
     public void deleteByUsername(final String username) throws NotFoundException {
-        User user = getByUsername(username);
+        User user = userRepository.findByUsernameAndStatut(username, Statut.ACTIVE).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "utilisateur non trouvée"));
         user.setStatut(Statut.DELETED);
         userRepository.save(user);
     }

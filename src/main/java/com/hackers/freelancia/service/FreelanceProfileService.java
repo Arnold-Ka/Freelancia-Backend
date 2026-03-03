@@ -17,6 +17,7 @@ import com.hackers.freelancia.entity.FreelanceExperience;
 import com.hackers.freelancia.entity.FreelanceProfile;
 import com.hackers.freelancia.entity.FreelanceSkills;
 import com.hackers.freelancia.entity.Rating;
+import com.hackers.freelancia.entity.User;
 import com.hackers.freelancia.mapper.Mapper;
 import com.hackers.freelancia.repository.FreelanceExperienceRepository;
 import com.hackers.freelancia.repository.FreelanceProfileRepository;
@@ -92,6 +93,8 @@ public class FreelanceProfileService {
         if (freelanceProfileDto.getUserId() == null || freelanceProfileDto.getUserId() == "" || !userRepository.existsById(freelanceProfileDto.getUserId())) {
             throw new IllegalArgumentException("L'id de l'utilisateur est invalide");
         }
+        User user = userRepository.findByIdAndStatut(freelanceProfileDto.getUserId(), Statut.ACTIVE).orElseThrow(() -> new IllegalArgumentException());
+        user.setFreelance(true);
         FreelanceProfile freelanceProfile = mapper.maps(freelanceProfileDto);
         freelanceProfile.setId(Utils.generateId());
         freelanceProfileRepository.save(freelanceProfile);

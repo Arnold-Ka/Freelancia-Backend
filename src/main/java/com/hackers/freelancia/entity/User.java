@@ -34,6 +34,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "profile_picture", nullable = true)
     private String profilePicture;
 
+    @Column(name = "is_freelance")
+    private boolean isFreelance = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
