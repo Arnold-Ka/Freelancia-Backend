@@ -27,6 +27,7 @@ import com.hackers.freelancia.entity.Skills;
 import com.hackers.freelancia.entity.Subscription;
 import com.hackers.freelancia.mapper.Mapper;
 import com.hackers.freelancia.repository.CategoryRepository;
+import com.hackers.freelancia.repository.FreelanceProfileRepository;
 import com.hackers.freelancia.repository.MissionRepository;
 import com.hackers.freelancia.repository.PaymentRepository;
 import com.hackers.freelancia.repository.ReviewRepository;
@@ -58,6 +59,7 @@ public class FreelanciaService {
     private final ReviewRepository reviewRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentRepository paymentRepository;
+    private final FreelanceProfileRepository freelanceProfileRepository;
     private final Mapper mapper;
 
     /**
@@ -442,8 +444,8 @@ public class FreelanciaService {
         if (!userRepository.existsById(missionDto.getClientId())) {
             throw new IllegalArgumentException("Utilisateur non Trouvé");
         }
-        if (!userRepository.existsById(missionDto.getFreelanceProfileId())) {
-            throw new IllegalArgumentException("Utilisateur non Trouvé");
+        if (!freelanceProfileRepository.existsById(missionDto.getFreelanceProfileId())) {
+            throw new IllegalArgumentException("freelance  non Trouvé");
         }
         Set<String> skillsIds = missionDto.getSkillsId();
         Set<Skills> skills = skillsRepository.findAllById(skillsIds).stream().filter(s -> s.isActive())

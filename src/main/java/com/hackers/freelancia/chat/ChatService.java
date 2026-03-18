@@ -1,4 +1,4 @@
-package com.hackers.freelancia.service;
+package com.hackers.freelancia.chat;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@SuppressWarnings(value = { "null" })
 public class ChatService {
 
     private final ConversationRepository conversationRepository;

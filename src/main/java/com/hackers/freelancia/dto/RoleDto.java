@@ -1,5 +1,6 @@
 package com.hackers.freelancia.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -14,5 +15,5 @@ import lombok.Setter;
 public class RoleDto {
     private String id;
     private String name;
-    private List<String> permissionsName;
+    private List<String> permissionsName = new ArrayList<>();
 }
