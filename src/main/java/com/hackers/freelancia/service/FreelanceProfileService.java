@@ -70,10 +70,15 @@ public class FreelanceProfileService {
         List<FreelanceProfileDto> freelanceProfileDtos = new java.util.ArrayList<>();
         // Boucle sur les profils de freelance pour calculer la note moyenne et les
         // convertir en DTO
+        
         for (FreelanceProfile freelanceProfile : freelanceProfiles) {
             Set<Rating> ratings = ratingRepository.findByFreelanceProfileId(freelanceProfile.getId()); // Récupération
                                                                                                        // des notes
-            long rating = ratings.stream().mapToLong(Rating::getRatingValue).sum() / ratings.size(); // Calcul de la
+            long rating = 0;
+            if (ratings.size() != 0) {
+                rating = ratings.stream().mapToLong(Rating::getRatingValue).sum() / ratings.size();
+            }
+             // Calcul de la
                                                                                                      // note
                                                                                                      // moyenne
             FreelanceProfileDto freelanceProfileDto = mapper.maps(freelanceProfile);

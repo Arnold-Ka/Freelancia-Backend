@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: freelancia-db
+    environment:
+      - POSTGRES_DB=freelancia
+      - POSTGRES_USER=freelancia
+      - POSTGRES_PASSWORD=freelancia123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - freelancia-network
+    healthcheck:
+      test: ["CMD-SHELL"," pg_isready -U freelancia -d freelancia"]
+      
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freelancia-app
+    depends_on:
+      db:
+        condition: 
+          service_healthy
+    environment:
+      - DB_USERNAME=freelancia
+      - DB_URL=jdbc:postgresql://db:5432/freelancia
+      - DB_PASSWORD=freelancia123
+      - MAIL_USERNAME=freelanciaservice@gmail.com
+      - MAIL_PASSWORD=oeifspbiqtrgbgnk
+      - SERVER_PORT=33726
+      - JWT_SECRET=Hu5r3kEwnfYq2xrFY0InHNyGM1cBvaquGeGLo9vhQnA
+      - JWT_EXPIRATION=3600000
+      - JWT_REFRESH_EXPIRATION=604800000
+    ports:
+      - "33726:33726"
+    networks:
+      - freelancia-network
+
+volumes:
+  postgres_data:
+
+networks:
+  freelancia-network:
+    driver: bridge
