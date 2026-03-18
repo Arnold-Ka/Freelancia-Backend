@@ -14,6 +14,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
+//import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,8 +35,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "profile_picture", nullable = true)
     private String profilePicture;
 
+
     @Column(name = "is_freelance")
-    private boolean isFreelance = false;
+    private boolean isFreelance;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
@@ -51,6 +53,12 @@ public class User extends BaseEntity implements UserDetails {
         }
         return authorities;
     }
+
+
+    // @PrePersist
+    // public User(){
+    //     this.isFreelance =false;
+    // }
     @Override
     public boolean isAccountNonExpired() {
         return true;

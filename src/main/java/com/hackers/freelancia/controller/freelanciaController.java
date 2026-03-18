@@ -136,8 +136,8 @@ public class freelanciaController  {
     }
 
     @GetMapping("users/me/{username}")
-    public ResponseEntity<UserDto> fetchUserInfos(@PathVariable final String username) throws Exception{
-        return ResponseEntity.ok(userService.getByUsername(username));
+    public ResponseEntity<ApiResponse<UserDto>> fetchUserInfos(@PathVariable final String username) throws Exception{
+        return ResponseEntity.ok(ApiResponse.success(userService.getByUsername(username)));
     }
 
     @GetMapping("/users")
