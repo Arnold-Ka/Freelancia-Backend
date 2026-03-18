@@ -30,7 +30,7 @@ public class Mission extends BaseEntity{
 
 
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true)
     private FreelanceProfile freelanceProfile;
     @ManyToOne(optional = false)
     private User client;
