@@ -30,9 +30,16 @@ public class Mission extends BaseEntity{
 
 
 
-    @ManyToOne(optional = true)
+    @ManyToOne
+    @JoinColumn(
+        name = "freelance_profile_id",
+        nullable = true
+    )
     private FreelanceProfile freelanceProfile;
-    @ManyToOne(optional = false)
+    @ManyToOne()
+    @JoinColumn(
+        name = "user_id"
+    )
     private User client;
     @ManyToMany
     @JoinTable(
