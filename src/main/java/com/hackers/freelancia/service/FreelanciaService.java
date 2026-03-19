@@ -1,6 +1,7 @@
 package com.hackers.freelancia.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class FreelanciaService {
      * @param id l'identfiant
      * @return la category
      */
-    public CategoryDto getCategory(final String id) throws NotFoundException{
+    public CategoryDto getCategory(final String id) throws NotFoundException {
         return mapper.maps(categoryRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category non Trouvée")));
     }
@@ -78,7 +79,7 @@ public class FreelanciaService {
      * 
      * @return la liste des categories
      */
-    public List<CategoryDto> getCategories() throws NotFoundException{
+    public List<CategoryDto> getCategories() throws NotFoundException {
         return categoryRepository.findAllActive().stream().map(mapper::maps).toList();
     }
 
@@ -87,7 +88,7 @@ public class FreelanciaService {
      * 
      * @param categoryDto les nouvelles informations sur la category
      */
-    public void postCategory(final CategoryDto categoryDto) throws NotFoundException{
+    public void postCategory(final CategoryDto categoryDto) throws NotFoundException {
         if (categoryDto.getName() == null || categoryDto.getName() == "") {
             new IllegalArgumentException("Le nom est vide");
         }
@@ -447,9 +448,13 @@ public class FreelanciaService {
         if (!freelanceProfileRepository.existsById(missionDto.getFreelanceProfileId())) {
             throw new IllegalArgumentException("freelance  non Trouvé");
         }
-        Set<String> skillsIds = missionDto.getSkillsId();
-        Set<Skills> skills = skillsRepository.findAllById(skillsIds).stream().filter(s -> s.isActive())
-                .collect(java.util.stream.Collectors.toSet());
+        Set<Skills> skills = new HashSet<>();
+        if (!missionDto.getSkillsId().isEmpty()) {
+            Set<String> skillsIds = missionDto.getSkillsId();
+            skills = skillsRepository.findAllById(skillsIds).stream().filter(s -> s.isActive())
+                    .collect(java.util.stream.Collectors.toSet());
+        }
+
         Mission mission = mapper.maps(missionDto);
         mission.setId(Utils.generateId());
         mission.setSkills(skills);
@@ -487,7 +492,7 @@ public class FreelanciaService {
      * 
      * @param id l'identifiant
      */
-    public void deleteMission(final String id)throws NotFoundException {
+    public void deleteMission(final String id) throws NotFoundException {
         Mission mission = missionRepository.findByIdAndStatut(id, Statut.ACTIVE).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mission non Trouvé"));
         mission.setStatut(Statut.DELETED);
