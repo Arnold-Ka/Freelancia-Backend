@@ -36,6 +36,7 @@ import com.hackers.freelancia.repository.SkillsRepository;
 import com.hackers.freelancia.repository.SubscriptionRepository;
 import com.hackers.freelancia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service générale de l'application.
@@ -46,6 +47,7 @@ import lombok.RequiredArgsConstructor;
  *          Copyright (c) 2021 All rights reserved.
  * @since : 14/05/2021 à 13:51
  */
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -60,7 +62,6 @@ public class FreelanciaService {
     private final ReviewRepository reviewRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentRepository paymentRepository;
-    private final FreelanceProfileRepository freelanceProfileRepository;
     private final Mapper mapper;
 
     /**
@@ -445,11 +446,9 @@ public class FreelanciaService {
         if (!userRepository.existsById(missionDto.getClientId())) {
             throw new IllegalArgumentException("Utilisateur non Trouvé");
         }
-        if (!freelanceProfileRepository.existsById(missionDto.getFreelanceProfileId())) {
-            throw new IllegalArgumentException("freelance  non Trouvé");
-        }
         Set<Skills> skills = new HashSet<>();
-        if (!missionDto.getSkillsId().isEmpty()) {
+        if (missionDto.getSkillsId() != null) {
+            log.info("initialisation des skills");
             Set<String> skillsIds = missionDto.getSkillsId();
             skills = skillsRepository.findAllById(skillsIds).stream().filter(s -> s.isActive())
                     .collect(java.util.stream.Collectors.toSet());
@@ -457,6 +456,7 @@ public class FreelanciaService {
 
         Mission mission = mapper.maps(missionDto);
         mission.setId(Utils.generateId());
+        mission.setFreelanceProfile(null);
         mission.setSkills(skills);
         missionRepository.save(mission);
     }

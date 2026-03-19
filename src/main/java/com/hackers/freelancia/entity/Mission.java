@@ -38,7 +38,7 @@ public class Mission extends BaseEntity{
     private FreelanceProfile freelanceProfile;
     @ManyToOne()
     @JoinColumn(
-        name = "user_id"
+        name = "client_id"
     )
     private User client;
     @ManyToMany
